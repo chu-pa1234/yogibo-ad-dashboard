@@ -2089,6 +2089,7 @@ const HIST=[];
 let RAW=HIST.map(r=>({...r}));
 
 var _lastImportedRows=[];
+var _lastImportedCreatives=[];
 
 function loadJsonp_(url){
   return new Promise(function(resolve,reject){
@@ -2156,6 +2157,13 @@ async function loadFromDrive(){
       CAMPAIGN_SETTINGS.length=0;
       CAMPAIGN_SETTINGS.push.apply(CAMPAIGN_SETTINGS,valid2);
     }
+    // クリエイティブデータ
+    var text3=await loadJsonp_(base+encodeURIComponent('クリエイティブデータ.csv'));
+    var loaded3=parseDriveCsv_(text3,['imp','clk','cost','cv','rev']);
+    if(loaded3.length){
+      CR_BASE.length=0;
+      CR_BASE.push.apply(CR_BASE,loaded3);
+    }
     if(statusEl) statusEl.textContent='Drive同期済 '+new Date().toLocaleString('ja-JP');
     if(ldot) ldot.style.background='#4CAF50';
     renderAll();
@@ -2184,7 +2192,17 @@ function saveToDrive(){
       body:JSON.stringify({fileName:'キャンペーン設定.csv',rows:CAMPAIGN_SETTINGS})
     });
   }
+  // クリエイティブデータも更新
+  if(_lastImportedCreatives.length){
+    fetch(DRIVE_SCRIPT_URL,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({fileName:'クリエイティブデータ.csv',rows:CR_BASE})
+    });
+  }
   _lastImportedRows=[];
+  _lastImportedCreatives=[];
 }
 MANUAL_DAILY_DATA.forEach(function(entry){ upsertManualRowInRaw(entry); });
 var kpiSortKey='cost';   // ソートキー: cost/rev/profit/roas/roi/cpc/ctr/cpa/cpm/clk/cv/imp/unitPrice
@@ -3918,6 +3936,7 @@ async function processCSVWithMapping(){
   // Driveに保存（新規行のみ送信してApps Script側でマージ）
   if(results.some(function(r){return r.startsWith('✅');})){
     _lastImportedRows=newRaw.slice();
+    _lastImportedCreatives=newCr.slice();
     saveToDrive();
   }
 

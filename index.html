@@ -2220,25 +2220,20 @@ let _pendingFilesData={}; // ファイルごとのデータ {fileName: {rawRows,
 
 
 // デフォルト期間：月初1日〜前日
-(function(){
-  var now=new Date();
-  var yesterday=new Date(now); yesterday.setDate(now.getDate()-1);
-  var pad=function(n){return String(n).padStart(2,'0');};
-  var y=yesterday.getFullYear(), m=pad(yesterday.getMonth()+1), d=pad(yesterday.getDate());
-  var ym=yesterday.getFullYear()+'-'+pad(yesterday.getMonth()+1);
-  dpFrom=ym+'-01';
-  dpTo=y+'-'+m+'-'+d;
-  dpDays=null;
-  setTimeout(function(){
-    var lbl=document.getElementById('dpLabel');
-    var fi=document.getElementById('dpFrom');
-    var ti=document.getElementById('dpTo');
-    if(lbl) lbl.textContent=(yesterday.getMonth()+1)+'月1日〜'+d+'日';
-    if(fi) fi.value=dpFrom;
-    if(ti) ti.value=dpTo;
-  },0);
-})();
-let dpFrom=null,dpTo=null,dpDays=null;
+var _initPad=function(n){return String(n).padStart(2,'0');};
+var _initYesterday=new Date(); _initYesterday.setDate(_initYesterday.getDate()-1);
+var _initM=_initPad(_initYesterday.getMonth()+1);
+let dpFrom=_initYesterday.getFullYear()+'-'+_initM+'-01';
+let dpTo=_initYesterday.getFullYear()+'-'+_initM+'-'+_initPad(_initYesterday.getDate());
+let dpDays=null;
+setTimeout(function(){
+  var lbl=document.getElementById('dpLabel');
+  var fi=document.getElementById('dpFrom');
+  var ti=document.getElementById('dpTo');
+  if(lbl) lbl.textContent=(_initYesterday.getMonth()+1)+'月1日〜'+_initPad(_initYesterday.getDate())+'日';
+  if(fi) fi.value=dpFrom;
+  if(ti) ti.value=dpTo;
+},0);
 
 function toggleDP(){
   const p=document.getElementById('dpPanel');

@@ -1495,28 +1495,25 @@ const MEDIA_CATEGORY={Google:'自社広告','Yahoo広告':'自社広告',Microso
 const MEDIA_LABELS={Google:'Google','Yahoo広告':'Yahoo',Microsoft:'Microsoft',Criteo:'CRITEO',RTB:'RTB',Meta:'Meta',Pinterest:'Pinterest',TikTok:'TikTok',X:'X',楽天:'楽天市場',Amazon:'Amazon',Yahoo:'Yahooショッピング'};
 
 let GOALS={
-  total:   {budget:30000000, rev:150000000, roas:500},
+  total:   {budget:0, rev:0, roas:0},
   // channelRev: チャネル別売上目標（自社合計・楽天・Amazon・Yahoo広告）
-  channelRev: {jisha:30000000, rakuten:50000000, amazon:40000000, yahoo:20000000},
-  Google:  {budget:6000000,  rev:18000000,  roas:300},
-  'Yahoo広告': {budget:4000000, rev:20000000, roas:500},
+  channelRev: {jisha:0, rakuten:0, amazon:0, yahoo:0},
+  Google:  {budget:0,  rev:0,  roas:0},
+  'Yahoo広告': {budget:0, rev:0, roas:0},
   Microsoft:{budget:0,        rev:0,         roas:0},
-  Criteo:  {budget:2000000,  rev:6000000,   roas:300},
+  Criteo:  {budget:0,  rev:0,   roas:0},
   RTB:     {budget:0,        rev:0,         roas:0},
-  Meta:    {budget:4000000,  rev:8000000,   roas:200},
+  Meta:    {budget:0,  rev:0,   roas:0},
   Pinterest:{budget:0,       rev:0,         roas:0},
-  TikTok:  {budget:3000000,  rev:6000000,   roas:200},
+  TikTok:  {budget:0,  rev:0,   roas:0},
   X:       {budget:0,        rev:0,         roas:0},
   LINE:    {budget:0,        rev:0,         roas:0},
-  楽天:    {budget:5000000,  rev:50000000,  roas:1000},
-  Amazon:  {budget:4000000,  rev:40000000,  roas:1000},
-  Yahoo:   {budget:3000000,  rev:18000000,  roas:600},
+  楽天:    {budget:0,  rev:0,  roas:0},
+  Amazon:  {budget:0,  rev:0,  roas:0},
+  Yahoo:   {budget:0,  rev:0,  roas:0},
 };
 
 /* CAMPAIGN_SETTINGS_START */var CAMPAIGN_SETTINGS = [];/* CAMPAIGN_SETTINGS_END */
-  {id:'cs_001',media:'Google',name:'【獲得】ディマンド_新生活_RT30日',aliases:['新生活RT30','Demand_NewLife_RT30'],params:'utm_source=google&utm_medium=cpc&utm_campaign=newlife_rt30'},
-  {id:'cs_002',media:'Amazon',name:'【獲得】【AMZ】SP_MiniPremium_自社商品_完全一致',aliases:['AMZ_SP_MiniPremium_完全一致'],params:'utm_source=amazon&utm_medium=cpc&utm_campaign=mini_premium_exact'}
-];/* CAMPAIGN_SETTINGS_END */
 /* MANUAL_DAILY_START */var MANUAL_DAILY_DATA = [];/* MANUAL_DAILY_END */
 var _editingCampaignSettingId = null;
 var _editingManualEntryId = null;
@@ -1645,7 +1642,7 @@ function initGoalPage(){
   document.getElementById('g_total_budget').value = GOALS.total.budget;
   document.getElementById('g_total_rev').value    = GOALS.total.rev;
   // チャネル別売上目標を初期化
-  var cr = GOALS.channelRev || {jisha:30000000, rakuten:50000000, amazon:40000000, yahoo:20000000};
+  var cr = GOALS.channelRev || {jisha:0, rakuten:0, amazon:0, yahoo:0};
   document.getElementById('ch_rev_jisha').value   = cr.jisha;
   document.getElementById('ch_rev_rakuten').value = cr.rakuten;
   document.getElementById('ch_rev_amazon').value  = cr.amazon;
@@ -2083,7 +2080,7 @@ function renderGoalProgress(){
 }
 
 const TARGET_ROAS=250;
-const PROFIT_RATE={楽天:0.51,Amazon:0.46,'Yahoo広告':0.515,Google:0.60,Meta:0.60,Criteo:0.60,TikTok:0.60,LINE:0.60,Pinterest:0.60,X:0.60};
+const PROFIT_RATE={楽天:0.51,amazon:0.46,'Yahoo広告':0.515,Google:0.60,Meta:0.60,Criteo:0.60,TikTok:0.60,LINE:0.60,Pinterest:0.60,X:0.60};
 
 
 const HIST=[];
@@ -3956,7 +3953,6 @@ function downloadHTML(){
     }
 
 /* CAMPAIGN_SETTINGS_START */var CAMPAIGN_SETTINGS = [];/* CAMPAIGN_SETTINGS_END */
-    var csEnd   = '/* CAMPAIGN_SETTINGS_END */';
     var csIdx = html.indexOf(csStart);
     if(csIdx >= 0){
       try {
@@ -4386,8 +4382,8 @@ function renderAll(){
     var fc=el>0?Math.round(ac/el*dim):0;
     var fr=el>0?Math.round(ar/el*dim):0;
     var froas=fc>0?Math.round(fr/fc*100):0;
-    var goalRev=GOALS&&GOALS.total?GOALS.total.rev:150000000;
-    var goalBud=GOALS&&GOALS.total?GOALS.total.budget:30000000;
+    var goalRev=GOALS&&GOALS.total?GOALS.total.rev:0;
+    var goalBud=GOALS&&GOALS.total?GOALS.total.budget:0;
     var frp=goalRev>0?Math.min(Math.round(fr/goalRev*100),150):0;
     var fcp=goalBud>0?Math.min(Math.round(fc/goalBud*100),150):0;
     var frc=frp>=100?'#2E7D32':frp>=70?'#F59E0B':'#E53935';
@@ -4423,9 +4419,9 @@ function renderAll(){
     {l:'全体ROAS',v:roas+'%',c:roas>=TARGET_ROAS?'green':'red'},{l:'全体ROI',v:totalROI.toFixed(1)+'%',c:totalROI>=0?'teal':'red'},
   ].map(s=>`<div class="sc ${s.c}"><div class="sc-lbl">${s.l}</div><div class="sc-val">${s.v}</div></div>`).join('');
   document.getElementById('roasProgress').innerHTML=ms.slice().sort((a,b)=>b.roas-a.roas).map(r=>{const p=Math.min(Math.round(r.roas/TARGET_ROAS*100),120),col=r.roas>=TARGET_ROAS?'#2E7D32':r.roas>=150?'#F59E0B':'#E53935';return`<div class="pw"><div class="ph"><span>${r.media}</span><span style="font-family:var(--mono)">${r.roas}%</span></div><div class="pb"><div class="pf" style="width:${p}%;background:${col}"></div></div></div>`;}).join('');
-  document.getElementById('budgetProgress').innerHTML=ms.map(r=>{const bud=GOALS[r.media]?GOALS[r.media].budget:300000,p=Math.min(Math.round(r.cost/bud*100),100),col=p>90?'#E53935':p>70?'#F59E0B':'#1976D2';return`<div class="pw"><div class="ph"><span>${r.media}</span><span style="font-family:var(--mono)">${p}%</span></div><div class="pb"><div class="pf" style="width:${p}%;background:${col}"></div></div></div>`;}).join('');
+  document.getElementById('budgetProgress').innerHTML=ms.map(r=>{const bud=GOALS[r.media]?GOALS[r.media].budget:0,p=Math.min(Math.round(r.cost/bud*100),100),col=p>90?'#E53935':p>70?'#F59E0B':'#1976D2';return`<div class="pw"><div class="ph"><span>${r.media}</span><span style="font-family:var(--mono)">${p}%</span></div><div class="pb"><div class="pf" style="width:${p}%;background:${col}"></div></div></div>`;}).join('');
   document.getElementById('alertTbl').innerHTML='<thead><tr><th>媒体</th><th class="nr">実績ROAS</th><th class="nr">目標ROAS</th><th class="nr">達成率</th><th class="nr">予算消化</th><th>ステータス</th></tr></thead><tbody>'+
-    ms.slice().sort((a,b)=>a.roas-b.roas).map(r=>{const targetR=GOALS[r.media]?GOALS[r.media].roas:TARGET_ROAS,ach=targetR>0?Math.round(r.roas/targetR*100):0,bud=GOALS[r.media]?GOALS[r.media].budget:300000,pace=Math.round(r.cost/bud*100),b=r.roas>=targetR?'<span class="bg g">達成</span>':r.roas>=(targetR*0.7)?'<span class="bg y">要注意</span>':'<span class="bg r">未達</span>';return`<tr><td><span class="mdot" style="background:${MC[r.media]||'#888'}"></span>${r.media}</td><td class="nr">${r.roas}%</td><td class="nr">${targetR}%</td><td class="nr">${ach}%</td><td class="nr">${pace}%</td><td>${b}</td></tr>`;}).join('')+'</tbody>';
+    ms.slice().sort((a,b)=>a.roas-b.roas).map(r=>{const targetR=GOALS[r.media]?GOALS[r.media].roas:TARGET_ROAS,ach=targetR>0?Math.round(r.roas/targetR*100):0,bud=GOALS[r.media]?GOALS[r.media].budget:0,pace=Math.round(r.cost/bud*100),b=r.roas>=targetR?'<span class="bg g">達成</span>':r.roas>=(targetR*0.7)?'<span class="bg y">要注意</span>':'<span class="bg r">未達</span>';return`<tr><td><span class="mdot" style="background:${MC[r.media]||'#888'}"></span>${r.media}</td><td class="nr">${r.roas}%</td><td class="nr">${targetR}%</td><td class="nr">${ach}%</td><td class="nr">${pace}%</td><td>${b}</td></tr>`;}).join('')+'</tbody>';
 
   renderCR();
   // P2キャンペーンテーブル更新

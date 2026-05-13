@@ -2083,14 +2083,92 @@ const TARGET_ROAS=250;
 const PROFIT_RATE={楽天:0.51,amazon:0.46,'Yahoo広告':0.515,Google:0.60,Meta:0.60,Criteo:0.60,TikTok:0.60,LINE:0.60,Pinterest:0.60,X:0.60};
 
 
+const DRIVE_SCRIPT_URL = 'https://script.google.com/a/macros/yogibo.inc/s/AKfycbwrpHdmkD1v8UtpFdyIrNQcAhDcpPj_HXBN0m_I4nM-eWAYSsEcH2DoCB3MOy3F1ZpM/exec';
+
 const HIST=[];
 let RAW=HIST.map(r=>({...r}));
+
+async function loadFromDrive(){
+  const statusEl=document.getElementById('dstatus');
+  const ldot=document.getElementById('ldot');
+  if(statusEl) statusEl.textContent='Driveからデータを読み込み中...';
+  try {
+    // 広告データ読み込み
+    const resp=await fetch(DRIVE_SCRIPT_URL+'?file='+encodeURIComponent('広告データ.csv'));
+    const text=await resp.text();
+    if(text && !text.startsWith('ERROR:') && text.trim()){
+      const rows=parseCSV(text);
+      if(rows.length>1){
+        const hdrs=rows[0].map(function(h){return h.trim();});
+        const loaded=[];
+        for(let i=1;i<rows.length;i++){
+          const row=rows[i];
+          if(row.length<2) continue;
+          const obj={};
+          hdrs.forEach(function(h,j){
+            const v=(row[j]||'').trim();
+            obj[h]=['imp','clk','cost','cv','rev'].includes(h)?parseFloat(v)||0:v;
+          });
+          if(obj.date&&obj.media) loaded.push(obj);
+        }
+        HIST.length=0;
+        HIST.push(...loaded);
+        RAW=HIST.map(function(r){return Object.assign({},r);});
+        MANUAL_DAILY_DATA.forEach(function(entry){upsertManualRowInRaw(entry);});
+      }
+    }
+    // キャンペーン設定読み込み
+    const resp2=await fetch(DRIVE_SCRIPT_URL+'?file='+encodeURIComponent('キャンペーン設定.csv'));
+    const text2=await resp2.text();
+    if(text2 && !text2.startsWith('ERROR:') && text2.trim()){
+      const rows2=parseCSV(text2);
+      if(rows2.length>1){
+        const hdrs2=rows2[0].map(function(h){return h.trim();});
+        const loaded2=[];
+        for(let i=1;i<rows2.length;i++){
+          const row=rows2[i];
+          if(row.length<2) continue;
+          const obj={};
+          hdrs2.forEach(function(h,j){obj[h]=(row[j]||'').trim();});
+          obj.aliases=obj.aliases?obj.aliases.split('|').filter(Boolean):[];
+          if(obj.id&&obj.name) loaded2.push(obj);
+        }
+        CAMPAIGN_SETTINGS.length=0;
+        CAMPAIGN_SETTINGS.push(...loaded2);
+      }
+    }
+    if(statusEl) statusEl.textContent='Drive同期済 '+new Date().toLocaleString('ja-JP');
+    if(ldot) ldot.style.background='#4CAF50';
+    renderAll();
+  } catch(err){
+    if(statusEl) statusEl.textContent='Drive読み込みエラー';
+    console.error('Drive読み込みエラー:',err);
+  }
+}
+
+async function saveToDrive(){
+  try {
+    const hdr='date,media,campaign,imp,clk,cost,cv,rev';
+    const rowsCsv=RAW.map(function(r){
+      return [r.date||'',r.media||'','"'+(r.campaign||'').replace(/"/g,'""')+'"',r.imp||0,r.clk||0,r.cost||0,r.cv||0,r.rev||0].join(',');
+    });
+    await fetch(DRIVE_SCRIPT_URL,{method:'POST',body:JSON.stringify({fileName:'広告データ.csv',content:'﻿'+[hdr,...rowsCsv].join('\n')})});
+    const hdr2='id,media,name,aliases,params';
+    const rows2=CAMPAIGN_SETTINGS.map(function(s){
+      return [s.id||'',s.media||'','"'+(s.name||'').replace(/"/g,'""')+'"','"'+(s.aliases||[]).join('|').replace(/"/g,'""')+'"','"'+(s.params||'').replace(/"/g,'""')+'"'].join(',');
+    });
+    await fetch(DRIVE_SCRIPT_URL,{method:'POST',body:JSON.stringify({fileName:'キャンペーン設定.csv',content:'﻿'+[hdr2,...rows2].join('\n')})});
+    console.log('✅ Driveに保存しました');
+  } catch(err){
+    console.error('Drive保存エラー:',err);
+  }
+}
 MANUAL_DAILY_DATA.forEach(function(entry){ upsertManualRowInRaw(entry); });
 var kpiSortKey='cost';   // ソートキー: cost/rev/profit/roas/roi/cpc/ctr/cpa/cpm/clk/cv/imp/unitPrice
 var kpiSortAsc=false;    // false=降順, true=昇順
 var campSortKey='cost';  // キャンペーンテーブルのソートキー
 var campSortAsc=false;   // キャンペーンテーブルの昇降順
-const CR_BASE_INIT=[{"media":"Meta","type":"カルーセル","account":"","campaign":"【2026】新生活_送料無料_カルーセル","ad":"【2026】新生活_送料無料_カルーセル","text1":"ウェブサイト購入","text2":"","imp":302640,"clk":6809,"cost":252611,"cv":362,"rev":0,"image_url":"","_dateFrom":"2026-03-01","_dateTo":"2026-03-26"},{"media":"Meta","type":"画像","account":"","campaign":"カタログ広告_Star商品_lookalike(2-3)","ad":"カタログ広告_Star商品_lookalike(2-3)","text1":"ウェブサイト購入","text2":"","imp":126330,"clk":2429,"cost":135139,"cv":136,"rev":0,"image_url":"","_dateFrom":"2026-03-01","_dateTo":"2026-03-26"},{"media":"Meta","type":"画像","account":"","campaign":"カタログ広告_リタゲ","ad":"カタログ広告_リタゲ","text1":"ウェブサイト購入","text2":"","imp":96035,"clk":2059,"cost":120377,"cv":59,"rev":0,"image_url":"","_dateFrom":"2026-03-01","_dateTo":"2026-03-26"},{"media":"Meta","type":"画像","account":"","campaign":"【2026】新生活_送料無料","ad":"【2026】新生活_送料無料","text1":"ウェブサイト購入","text2":"","imp":130462,"clk":514,"cost":79688,"cv":9,"rev":0,"image_url":"","_dateFrom":"2026-03-01","_dateTo":"2026-03-26"},{"media":"Meta","type":"動画","account":"","campaign":"【2026】ヨギメンテ_UGC","ad":"【2026】ヨギメンテ_UGC","text1":"ウェブサイト購入","text2":"","imp":59882,"clk":479,"cost":62548,"cv":61,"rev":0,"image_url":"","_dateFrom":"2026-03-01","_dateTo":"2026-03-26"},{"media":"Meta","type":"画像","account":"","campaign":"カタログ広告_2026新生活","ad":"カタログ広告_2026新生活","text1":"ウェブサイト購入","text2":"","imp":63285,"clk":1719,"cost":61822,"cv":85,"rev":0,"image_url":"","_dateFrom":"2026-03-01","_dateTo":"2026-03-26"},{"media":"Meta","type":"動画","account":"","campaign":"【2026】ヨギメンテ_UGCB","ad":"【2026】ヨギメンテ_UGCB","text1":"ウェブサイト購入","text2":"","imp":40792,"clk":393,"cost":43053,"cv":37,"rev":0,"image_url":"","_dateFrom":"2026-03-01","_dateTo":"2026-03-26"},{"media":"Meta","type":"画像","account":"","campaign":"カタログ広告_lookalike","ad":"カタログ広告_lookalike","text1":"ウェブサイト購入","text2":"","imp":31683,"clk":806,"cost":40655,"cv":26,"rev":0,"image_url":"","_dateFrom":"2026-03-01","_dateTo":"2026-03-26"},{"media":"Meta","type":"動画","account":"","campaign":"【2026】新生活_送料無料 - 動画","ad":"【2026】新生活_送料無料 - 動画","text1":"ウェブサイト購入","text2":"","imp":17110,"clk":90,"cost":17087,"cv":5,"rev":0,"image_url":"","_dateFrom":"2026-03-01","_dateTo":"2026-03-26"}];
+const CR_BASE_INIT=[];
 let CR_BASE=CR_BASE_INIT.map(function(r){return Object.assign({},r);});
 let RAW_BACKUP=null; // インポート前バックアップ
 let CR_BACKUP=null;
@@ -3814,6 +3892,11 @@ async function processCSVWithMapping(){
   const rollbackBtnTop=document.getElementById('rollbackBtnTop');
   if(rollbackBtnTop) rollbackBtnTop.style.display = RAW_BACKUP ? 'flex' : 'none';
   
+  // Driveに保存
+  if(results.some(function(r){return r.startsWith('✅');})){
+    saveToDrive();
+  }
+
   // モーダルを閉じて結果を表示
   closeMappingModal(false);
   document.getElementById('importModal').style.display='flex';
@@ -7191,6 +7274,7 @@ function nav(id,btn){
 
 
 ensureAffiliateSupport();
+loadFromDrive();
 renderAll();
 initSbApiKey();
 initCampaignSettingsPage();
